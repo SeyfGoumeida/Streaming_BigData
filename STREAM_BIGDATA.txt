@@ -1,0 +1,37 @@
+from apache_beam.testing.test_pipeline import TestPipeline
+from apache_beam.testing.test_stream import TestStream
+
+
+with TestPipeline() as pipeline:
+  stream = (
+      pipeline
+      | TestStream()\
+        .advance_processing_time(str_to_timestamp("2022-01-12 10:30:00"))  # on traite les données à 10h30
+        .advance_watermark_to(new_watermark=str_to_timestamp("2022-01-12 10:20:00")) # on considère que toutes les données avant 10h20 ont été reçues
+        .add_elements(
+            elements=[
+                      ("a", 1),
+                      ("b", 2),
+                      ("b", 4)
+            ],
+            event_timestamp=str_to_timestamp("2022-01-12 10:00:30")  # des données qui sont produites à 10:00:30
+        )
+        .add_elements(
+            elements=[
+                      ("a", 3),
+                      ("b", 7)
+            ],
+            event_timestamp=str_to_timestamp("2022-01-12 10:25:50")
+        )
+  )
+
+  (stream
+   | "Affichage" >> beam.Map(print)
+  )
+
+
+
+
+
+
+
